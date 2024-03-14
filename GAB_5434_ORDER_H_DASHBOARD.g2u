@@ -1,0 +1,421 @@
+Program.Sub.ScreenSU.Start
+Gui.fMain..Create
+Gui.fMain..Caption("Sales Order History Dashboard")
+Gui.fMain..Size(15360,10695)
+Gui.fMain..MinX(0)
+Gui.fMain..MinY(0)
+Gui.fMain..Position(0,0)
+Gui.fMain..BackColor(-2147483633)
+Gui.fMain..MousePointer(0)
+Gui.fMain..Event(UnLoad,fMain_UnLoad)
+Gui.fMain.GsGcMain.Create(GsGridControl)
+Gui.fMain.GsGcMain.Size(14835,9765)
+Gui.fMain.GsGcMain.Position(150,150)
+Gui.fMain.GsGcMain.Anchor(15)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+V.Global.bLoadData.Declare
+V.Global.bLoadData.Set(True)
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.CallSub(connect)
+F.Intrinsic.UI.InvokeWaitDialog("Loading Data","Order History Dashboard")
+F.Intrinsic.Control.CallSub(loaddtmain)
+'F.Intrinsic.Control.CallSub(GRIDLIB_formatgrid,"TABLE","dtMain","FORM","fMain","GRIDVIEW","gvMain","GRIDCONTROL","GsGcMain")
+F.Intrinsic.Control.CallSub(formatgvmain)
+F.Intrinsic.Control.CallSub(setcontextmenus)
+F.Intrinsic.Control.CallSub(deserialize)
+Gui.fMain.GsGcMain.MainView("gvMain")
+F.Intrinsic.UI.CloseWaitDialog
+Gui.fMain..Show
+Program.Sub.Main.End
+
+Program.Sub.fMain_UnLoad.Start
+Gui.fMain..Visible(0)
+F.Intrinsic.Control.CallSub(serialize)
+F.Intrinsic.Control.CallSub(disconnect)
+F.Intrinsic.Control.End
+
+Program.Sub.fMain_UnLoad.End
+
+Program.Sub.Connect.Start
+F.ODBC.Connection!conx.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+Program.Sub.Connect.End
+
+Program.Sub.Disconnect.Start
+F.ODBC.Connection!conx.Close
+Program.Sub.Disconnect.End
+
+Program.Sub.LoaddtMain.Start
+F.Intrinsic.Control.If(V.DataTable.dtMain.Exists,=,True)
+	F.Data.DataTable.DeleteRow("dtMain")
+	F.Data.DataTable.Close("dtMain")
+F.Intrinsic.Control.EndIf
+
+F.Data.DataTable.CreateFromSQL("dtMain","conx","select A.ORDER_NO, left(A.ORDER_LINE,3) as ORDER_LINE, A.DATE_ORDER, A.DATE_SHIPPED, A.INVOICE, A.DATE_INVOICE, B.NAME_CUSTOMER, B.CODE_SORT, B.ORDER_SORT_2, A.QTY_ORDERED * A.PRICE as LIST_SALES, A.QTY_ORDERED * A.PRICE_DISCOUNT as NET_SALES, A.QTY_ORDERED * (A.PRICE - A.PRICE_DISCOUNT) as TOTAL_DISCOUNT, A.COST * A.QTY_ORDERED as TOTAL_COST, A.COST, (A.QTY_ORDERED * A.PRICE_DISCOUNT) - (A.COST * A.QTY_ORDERED)  as GROSS_PROFIT, cast((if((A.QTY_ORDERED * A.PRICE_DISCOUNT) = 0,0,((A.QTY_ORDERED * A.PRICE_DISCOUNT) - (A.COST * A.QTY_ORDERED))/(A.QTY_ORDERED * A.PRICE_DISCOUNT))) as float) as MARGIN, A.PART, A.DESCRIPTION, A.QTY_SHIPPED, A.QTY_ORDERED, A.QTY_BO  from V_ORDER_HIST_LINE A left outer join V_ORDER_HIST_HEAD B on A.ORDER_NO = B.ORDER_NO",True)
+
+F.Data.DataView.Create("dtMain","dvMain")
+
+V.Global.bLoadData.Set(True)
+Program.Sub.LoaddtMain.End
+
+Program.Sub.formatgvMain.Start
+gui.fMain.GsGcMain.AddGridviewFromDataview("gvMain","dtMain","dvMain")
+
+
+gui.fMain.GsGcMain.SuspendLayout()
+gui.fMain.GsGcMain.SetGridviewProperty("gvMain","OptionBehaviorEditable",False)
+gui.fMain.GsGcMain.SetGridviewProperty("gvMain","MultiSelect",False)
+gui.fMain.GsGcMain.SetGridviewProperty("gvMain","AllowFilter",True)
+gui.fMain.GsGcMain.SetGridviewProperty("gvMain","OptionsViewShowGroupPanel",True)
+gui.fMain.GsGcMain.SetGridviewProperty("gvMain","EnableAppearanceOddRow",True)
+gui.fMain.GsGcMain.SetGridviewProperty("gvMain","OptionsViewColumnAutoWidth",False)
+
+'HeaderFontBold
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_NO","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_LINE","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_ORDER","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_SHIPPED","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","INVOICE","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_INVOICE","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NAME_CUSTOMER","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","CODE_SORT","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_SORT_2","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","LIST_SALES","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NET_SALES","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_DISCOUNT","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_COST","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","COST","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","GROSS_PROFIT","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","MARGIN","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","PART","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DESCRIPTION","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_SHIPPED","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_ORDERED","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_BO","HeaderFontBold",True)
+
+'Visible
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_NO","Visible",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_LINE","Visible",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_ORDER","Visible",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_SHIPPED","Visible",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","INVOICE","Visible",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_INVOICE","Visible",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NAME_CUSTOMER","Visible",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","CODE_SORT","Visible",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_SORT_2","Visible",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","LIST_SALES","Visible",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NET_SALES","Visible",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_DISCOUNT","Visible",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_COST","Visible",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","COST","Visible",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","GROSS_PROFIT","Visible",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","MARGIN","Visible",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","PART","Visible",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DESCRIPTION","Visible",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_SHIPPED","Visible",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_ORDERED","Visible",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_BO","Visible",True)
+
+'ReadOnly
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_NO","ReadOnly",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_LINE","ReadOnly",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_ORDER","ReadOnly",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_SHIPPED","ReadOnly",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","INVOICE","ReadOnly",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_INVOICE","ReadOnly",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NAME_CUSTOMER","ReadOnly",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","CODE_SORT","ReadOnly",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_SORT_2","ReadOnly",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","LIST_SALES","ReadOnly",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NET_SALES","ReadOnly",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_DISCOUNT","ReadOnly",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_COST","ReadOnly",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","COST","ReadOnly",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","GROSS_PROFIT","ReadOnly",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","MARGIN","ReadOnly",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","PART","ReadOnly",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DESCRIPTION","ReadOnly",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_SHIPPED","ReadOnly",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_ORDERED","ReadOnly",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_BO","ReadOnly",True)
+
+'AllowEdit
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_NO","AllowEdit",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_LINE","AllowEdit",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_ORDER","AllowEdit",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_SHIPPED","AllowEdit",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","INVOICE","AllowEdit",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_INVOICE","AllowEdit",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NAME_CUSTOMER","AllowEdit",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","CODE_SORT","AllowEdit",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_SORT_2","AllowEdit",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","LIST_SALES","AllowEdit",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NET_SALES","AllowEdit",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_DISCOUNT","AllowEdit",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_COST","AllowEdit",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","COST","AllowEdit",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","GROSS_PROFIT","AllowEdit",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","MARGIN","AllowEdit",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","PART","AllowEdit",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DESCRIPTION","AllowEdit",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_SHIPPED","AllowEdit",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_ORDERED","AllowEdit",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_BO","AllowEdit",True)
+
+'HeaderFontBold
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_NO","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_LINE","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_ORDER","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_SHIPPED","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","INVOICE","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_INVOICE","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NAME_CUSTOMER","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","CODE_SORT","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_SORT_2","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","LIST_SALES","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NET_SALES","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_DISCOUNT","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_COST","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","COST","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","GROSS_PROFIT","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","MARGIN","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","PART","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DESCRIPTION","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_SHIPPED","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_ORDERED","HeaderFontBold",True)
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_BO","HeaderFontBold",True)
+
+'HeaderHAlignment
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_NO","HeaderHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_LINE","HeaderHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_ORDER","HeaderHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_SHIPPED","HeaderHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","INVOICE","HeaderHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_INVOICE","HeaderHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NAME_CUSTOMER","HeaderHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","CODE_SORT","HeaderHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_SORT_2","HeaderHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","LIST_SALES","HeaderHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NET_SALES","HeaderHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_DISCOUNT","HeaderHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_COST","HeaderHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","COST","HeaderHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","GROSS_PROFIT","HeaderHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","MARGIN","HeaderHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","PART","HeaderHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DESCRIPTION","HeaderHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_SHIPPED","HeaderHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_ORDERED","HeaderHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_BO","HeaderHAlignment","Center")
+
+'CellHAlignment
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_NO","CellHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_LINE","CellHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_ORDER","CellHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_SHIPPED","CellHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","INVOICE","CellHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_INVOICE","CellHAlignment","Center")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NAME_CUSTOMER","CellHAlignment","Near")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","CODE_SORT","CellHAlignment","Near")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_SORT_2","CellHAlignment","Near")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","LIST_SALES","CellHAlignment","Far")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NET_SALES","CellHAlignment","Far")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_DISCOUNT","CellHAlignment","Far")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_COST","CellHAlignment","Far")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","COST","CellHAlignment","Far")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","GROSS_PROFIT","CellHAlignment","Far")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","MARGIN","CellHAlignment","Far")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","PART","CellHAlignment","Near")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DESCRIPTION","CellHAlignment","Near")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_SHIPPED","CellHAlignment","Far")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_ORDERED","CellHAlignment","Far")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_BO","CellHAlignment","Far")
+
+'Caption
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_NO","Caption","Order #")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_LINE","Caption","Line")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_ORDER","Caption","Order Date")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_SHIPPED","Caption","Ship Date")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","INVOICE","Caption","Invoice #")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_INVOICE","Caption","Invoice Date")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NAME_CUSTOMER","Caption","Dealer Name")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","CODE_SORT","Caption","Project Name")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_SORT_2","Caption","SPA #")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","LIST_SALES","Caption","List Sales")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NET_SALES","Caption","Net Sales")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_DISCOUNT","Caption","Total Disc.")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_COST","Caption","Total Cost")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","COST","Caption","Unit Cost")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","GROSS_PROFIT","Caption","Gross Profit")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","MARGIN","Caption","Gross Profit %")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","PART","Caption","Part #")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DESCRIPTION","Caption","Description")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_SHIPPED","Caption","Qty. Shipped")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_ORDERED","Caption","Qty. Ordered")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_BO","Caption","Qty. B/O")
+
+'CustomDisplay
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_ORDER","DisplayCustomDateTime","d")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_SHIPPED","DisplayCustomDateTime","d")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_INVOICE","DisplayCustomDateTime","d")
+
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","LIST_SALES","DisplayCustomNumeric","$###,###,##0.00")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NET_SALES","DisplayCustomNumeric","$###,###,##0.00")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_DISCOUNT","DisplayCustomNumeric","$###,###,##0.00")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_COST","DisplayCustomNumeric","$###,###,##0.00")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","COST","DisplayCustomNumeric","$###,###,##0.00")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","GROSS_PROFIT","DisplayCustomNumeric","$###,###,##0.00")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","MARGIN","DisplayCustomNumeric","##0.00%")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_SHIPPED","DisplayCustomNumeric","###,###,##0.00")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_ORDERED","DisplayCustomNumeric","###,###,##0.00")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_BO","DisplayCustomNumeric","###,###,##0.00")
+
+
+'MinWidth
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_NO","MinWidth","60")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_LINE","MinWidth","60")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_ORDER","MinWidth","80")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_SHIPPED","MinWidth","80")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","INVOICE","MinWidth","80")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_INVOICE","MinWidth","90")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NAME_CUSTOMER","MinWidth","200")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","CODE_SORT","MinWidth","150")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_SORT_2","MinWidth","100")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","LIST_SALES","MinWidth","80")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NET_SALES","MinWidth","80")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_DISCOUNT","MinWidth","80")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_COST","MinWidth","80")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","COST","MinWidth","80")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","GROSS_PROFIT","MinWidth","80")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","MARGIN","MinWidth","90")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","PART","MinWidth","150")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DESCRIPTION","MinWidth","200")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_SHIPPED","MinWidth","80")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_ORDERED","MinWidth","80")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_BO","MinWidth","80")
+
+'Maxwidth
+
+'VisibleIndex
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_NO","VisibleIndex","0")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_LINE","VisibleIndex","1")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_ORDER","VisibleIndex","2")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_SHIPPED","VisibleIndex","3")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","INVOICE","VisibleIndex","4")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DATE_INVOICE","VisibleIndex","5")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NAME_CUSTOMER","VisibleIndex","6")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","CODE_SORT","VisibleIndex","7")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","ORDER_SORT_2","VisibleIndex","8")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","LIST_SALES","VisibleIndex","9")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","NET_SALES","VisibleIndex","10")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_DISCOUNT","VisibleIndex","11")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","TOTAL_COST","VisibleIndex","12")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","COST","VisibleIndex","13")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","GROSS_PROFIT","VisibleIndex","14")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","MARGIN","VisibleIndex","15")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","PART","VisibleIndex","16")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","DESCRIPTION","VisibleIndex","17")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_SHIPPED","VisibleIndex","18")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_ORDERED","VisibleIndex","19")
+gui.fMain.GsGcMain.SetColumnProperty("gvMain","QTY_BO","VisibleIndex","20")
+
+gui.fMain.GsGcMain.ResumeLayout()
+Program.Sub.formatgvMain.End
+
+Program.Sub.SetContextMenus.Start
+	Gui.fMain..ContextMenuCreate("ctxMain")
+	Gui.fMain.GsGcMain.ContextMenuAttach("ctxMain")
+	Gui.fMain..ContextMenuAddItem("ctxMain","Refresh",0,"Refresh")
+	Gui.fMain..ContextMenuAddItem("ctxMain","Export",0,"Export")
+	Gui.fMain..ContextMenuAddItem("ctxMain","ResetColumns",0,"Reset Columns")
+	Gui.fMain..ContextMenuSetItemEventHandler("ctxMain","Refresh","MenuClickRefresh")
+	Gui.fMain..ContextMenuSetItemEventHandler("ctxMain","Export","MenuClickExport")
+	Gui.fMain..ContextMenuSetItemEventHandler("ctxMain","ResetColumns","MenuClickResetColumns")
+Program.Sub.SetContextMenus.End
+
+Program.Sub.MenuClickRefresh.Start
+	F.Intrinsic.Control.CallSub(cmdRefresh_Click)
+Program.Sub.MenuClickRefresh.End
+
+Program.Sub.MenuClickExport.Start
+	V.Local.sFileExport.Declare
+	V.Local.bExcel.Declare
+	V.Local.bFileLocked.Declare
+	V.Local.sMsg.Declare
+	V.Local.sControl.Declare
+
+	V.Local.sControl.Set("GsGCMain")
+
+
+	F.Automation.MSExcel.CheckPresence(V.Local.bExcel)
+	F.Intrinsic.Control.If(V.Local.bExcel)
+		F.Intrinsic.String.Build("{0}\GAB_5434_{1}_Export.xlsx",V.Caller.LocalGssTempDir,V.Local.sControl,V.Local.sFileExport)
+		F.Intrinsic.File.IsFileLocked(V.Local.sFileExport,V.Local.bFileLocked)
+		F.Intrinsic.Control.If(V.Local.bFileLocked)
+			F.Intrinsic.String.Build("File is already open. Please close and export again.{0}File: {1}",V.Ambient.NewLine,V.Local.sFileExport,V.Local.sMsg)
+			F.Intrinsic.UI.Msgbox(V.Local.sMsg,"File In Use")
+		F.Intrinsic.Control.Else
+			Gui.fMain.[V.Local.sControl].Export(V.Local.sFileExport,"xlsx")
+			F.Intrinsic.Task.ShellExec(0,"",V.Local.sFileExport,"","",1)
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Else
+		F.Intrinsic.String.Build("{0}\GAB_5434_{1}_Export.csv",V.Caller.LocalGssTempDir,V.Local.sControl,V.Local.sFileExport)
+		F.Intrinsic.File.IsFileLocked(V.Local.sFileExport,V.Local.bFileLocked)
+		F.Intrinsic.Control.If(V.Local.bFileLocked)
+			F.Intrinsic.String.Build("File is already open. Please close and export again.{0}File: {1}",V.Ambient.NewLine,V.Local.sFileExport,V.Local.sMsg)
+			F.Intrinsic.UI.Msgbox(V.Local.sMsg,"File In Use")
+		F.Intrinsic.Control.Else
+			Gui.fMain.[V.Local.sControl].Export(V.Local.sFileExport,"csv")
+		F.Intrinsic.Control.EndIf
+		F.Intrinsic.Task.ShellExec(0,"",V.Local.sFileExport,"","",1)
+	F.Intrinsic.Control.EndIf
+
+Program.Sub.MenuClickExport.End
+
+Program.Sub.MenuClickResetColumns.Start
+	F.Global.Registry.AddValue(V.Caller.User,V.Caller.CompanyCode,"gvMain",5434,1000,False,"Serialize",False,0,-999.0,1/1/1980,12:00:00 AM,"")
+
+	V.Global.bLoadData.Set(False)
+	F.Intrinsic.Control.CallSub(cmdRefresh_Click)
+Program.Sub.MenuClickResetColumns.End
+
+Program.Sub.cmdRefresh_Click.Start
+	F.Intrinsic.Control.If(V.Global.bLoadData)
+		F.Intrinsic.Control.CallSub(Serialize)
+	F.Intrinsic.Control.EndIf
+
+	F.Intrinsic.Control.BlockEvents
+	F.Intrinsic.Control.CallSub(loaddtmain)
+	F.Intrinsic.Control.CallSub(formatgvmain)
+	gui.fMain.GsGcMain.MainView("gvMain")
+	F.Intrinsic.UI.CloseWaitDialog
+	F.Intrinsic.Control.UnBlockEvents
+	F.Intrinsic.Control.CallSub(Deserialize)
+Program.Sub.cmdRefresh_Click.End
+
+Program.Sub.Serialize.Start
+	V.Local.sSerialize.Declare
+
+	Gui.fMain.GsGcMain.Serialize("gvMain",V.Local.sSerialize)
+	F.Global.Registry.AddValue(V.Caller.User,V.Caller.CompanyCode,"gvMain",5434,1000,False,"Serialize",False,0,-999.0,1/1/1980,12:00:00 AM,V.Local.sSerialize)
+
+Program.Sub.Serialize.End
+
+Program.Sub.Deserialize.Start
+
+	V.Local.sSerialize.Declare
+
+	F.Global.Registry.ReadValue(V.Caller.User,V.Caller.CompanyCode,"gvMain",5434,1000,6,"",V.Local.sSerialize)
+	F.Intrinsic.Control.If(V.Local.sSerialize.Trim,<>,"")
+		Gui.fMain.GsGcMain.Deserialize(V.Local.sSerialize)
+	F.Intrinsic.Control.EndIf
+
+Program.Sub.Deserialize.End
+
+Program.Sub.Comments.Start
+${$0$}$Sales Order History Dashboard$}$JWERTH$}$1/30/2019 9:35:26 AM$}$False
+${$3$}$0$}$$}$0$}$-1$}$$}$12:00:00 AM$}$Custom Sales Order History Dashboard for Camino
+Program.Sub.Comments.End
